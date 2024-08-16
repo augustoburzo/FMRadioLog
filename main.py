@@ -114,7 +114,6 @@ class App(customtkinter.CTk):
 
     def on_load(self):
         #Initializes the interface
-        #TODO Create the QTH file reader
         self.latitude_entry.delete(0, END)
         self.longitude_entry.delete(0, END)
         self.altitude_entry.delete(0, END)
