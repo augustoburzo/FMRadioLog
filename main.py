@@ -15,9 +15,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.    #
 # ####################################################################### #
 
-import customtkinter
 from tkinter import messagebox, END
+
+import customtkinter
+import CTkMenuBar
+from tkinter import ttk
+
 import qth_editor
+
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -27,7 +32,18 @@ class App(customtkinter.CTk):
         self.title("FMRadioLog")
         self.frequencies = ["", ]
         #TODO Create an icon
-        #TODO Add a menubar
+
+        #Menubar
+        #TODO Add menu functions
+        self.main_menubar = CTkMenuBar.CTkMenuBar(master=self)
+        self.file_btn = self.main_menubar.add_cascade(text="File")
+
+        #File Dropdown
+        self.file_cascade = CTkMenuBar.CustomDropdownMenu(widget=self.file_btn)
+        self.file_cascade.add_option(option="Export...", command=self.export_log)
+        self.file_cascade.add_separator()
+        self.file_cascade.add_option(option="Exit", command=self.close_app)
+
 
         #QTH Selection Block
         self.qth_lbl = customtkinter.CTkLabel(master=self, text="QTH Selection")
@@ -91,11 +107,58 @@ class App(customtkinter.CTk):
         self.radiotext_lbl.grid(column=0, row=4, sticky="e", pady=5, padx=5)
         self.radiotext_entry = customtkinter.CTkEntry(master=self.master_frame)
         self.radiotext_entry.grid(column=1, row=4, sticky="ew", columnspan=4)
-        self.clear_btn = customtkinter.CTkButton(master=self.master_frame, text="Clear form", fg_color="#ff6600",
-                                                 hover_color="orange", text_color="black")
+        self.clear_btn = customtkinter.CTkButton(master=self.master_frame, text="Clear form", fg_color="#c24404",
+                                                 hover_color="#de5009", command=self.clear_form)
         self.clear_btn.grid(column=1, row=5, sticky="ew", columnspan=2, pady=5)
-        #TODO Add a submit button
+        self.submit_btn = customtkinter.CTkButton(master=self.master_frame, text="Submit", fg_color="#00ac4e",
+                                                  hover_color="#04c25A")
+        self.submit_btn.grid(column=3, row=5, sticky="ew", columnspan=2)
+        #TODO Add submit functions
         #TODO Add a treeview to see the logged records
+
+        #Logger block
+        self.logger_title_lbl = customtkinter.CTkLabel(master=self, text="Log table")
+        self.logger_title_lbl.pack(pady=1)
+        self.logger_frame = customtkinter.CTkFrame(master=self)
+        self.logger_frame.pack(padx=5, pady=5, fill="x")
+
+        #Treeview customisation
+        bg_color = self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkFrame"]["fg_color"])
+        text_color = self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkLabel"]["text_color"])
+        selected_color = self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
+        treestyle = ttk.Style()
+        treestyle.theme_use('default')
+        treestyle.configure("Treeview", background=bg_color, foreground=text_color, fieldbackground=bg_color,
+                            borderwidth=0)
+        treestyle.map('Treeview', background=[('selected', bg_color)], foreground=[('selected', selected_color)])
+        self.bind("<<TreeviewSelect>>", lambda event: self.focus_set())
+        self.logger_tv = ttk.Treeview(master=self.logger_frame, columns=("frequency", "rds", "rds?", "carrier", "pilot",
+                                                                         "strength", "azimuth", "rt?", "rt"))
+        self.logger_tv.grid(column=0, row=0, sticky="ew", padx=5, pady=5)
+
+        #Sets treeview headings
+        self.logger_tv.heading("#0", text="ID")
+        self.logger_tv.heading("frequency", text="Frequency")
+        self.logger_tv.heading("rds", text="PS")
+        self.logger_tv.heading("rds?", text="RDS")
+        self.logger_tv.heading("carrier", text="Carrier")
+        self.logger_tv.heading("pilot", text="Stereo")
+        self.logger_tv.heading("strength", text="Strength")
+        self.logger_tv.heading("azimuth", text="Azimuth")
+        self.logger_tv.heading("rt?", text="RadioText")
+        self.logger_tv.heading("rt", text="RT Text")
+
+        #Sets treeview column width
+        self.logger_tv.column("#0", minwidth=0, width=50)
+        self.logger_tv.column("frequency", minwidth=0, width=100)
+        self.logger_tv.column("rds", minwidth=0, width=100)
+        self.logger_tv.column("rds?", minwidth=0, width=20)
+        self.logger_tv.column("carrier", minwidth=0, width=100)
+        self.logger_tv.column("pilot", minwidth=0, width=20)
+        self.logger_tv.column("strength", minwidth=0, width=100)
+        self.logger_tv.column("azimuth", minwidth=0, width=100)
+        self.logger_tv.column("rt?", minwidth=0, width=20)
+        self.logger_tv.column("rt", minwidth=0, width=100)
 
         #Column configuration for QTH selection frame
         self.qth_frame.columnconfigure(index=1, weight=1)
@@ -105,11 +168,14 @@ class App(customtkinter.CTk):
         self.master_frame.columnconfigure(index=1, weight=1)
         self.master_frame.columnconfigure(index=3, weight=1)
 
+        #Column configuration for Logger frame
+        self.logger_frame.columnconfigure(index=0, weight=1)
+
         self.on_load()
     def get_freqs(self):
         #Generates a list of frequencies for the combobox
         low = 87.5
-        self.frequencies = [str(low), ]
+        self.frequencies = ["-", str(low), ]
         while low < 107.9:
             low = low + 0.10
             ltp = (round(low, 2), )
@@ -121,7 +187,7 @@ class App(customtkinter.CTk):
             latitude = self.latitude_entry.get()
             longitude = self.longitude_entry.get()
             altitude = self.altitude_entry.get()
-            qth_editor.QTHFileHandler(qth=[latitude, longitude, altitude])
+            qth_editor.QTHFileHandler(switch=0, qth=[latitude, longitude, altitude])
         else:
             pass
         self.on_load()
@@ -145,7 +211,7 @@ class App(customtkinter.CTk):
         self.latitude_entry.delete(0, END)
         self.longitude_entry.delete(0, END)
         self.altitude_entry.delete(0, END)
-        qth = qth_editor.QTHFileHandler.read_qth_file(App).replace("'","").replace(" ","").split(",")
+        qth = qth_editor.QTHFileHandler().read_qth_file().replace("'","").replace(" ","").split(",")
         self.latitude_entry.insert(0, qth[0])
         self.longitude_entry.insert(0, qth[1])
         self.altitude_entry.insert(0, qth[2])
@@ -154,6 +220,26 @@ class App(customtkinter.CTk):
         self.altitude_entry.configure(state="readonly")
         self.save_qth_btn.configure(state="disabled")
         #TODO Insert location function
+
+    def export_log(self):
+        #TODO Insert export log function
+        pass
+
+    def clear_form(self):
+        self.frequency_cbx.set("-")
+        self.rds_entry.delete(0, END)
+        self.carrier_entry.delete(0, END)
+        self.power_entry.delete(0, END)
+        self.azimuth_entry.delete(0, END)
+        self.radiotext_entry.delete(0, END)
+        self.rds_check.deselect()
+        self.stereo_check.deselect()
+        self.radiotext_check.deselect()
+        self.frequency_cbx.focus()
+
+    def close_app(self):
+        if messagebox.askyesno(title="Close the app?", message="Are you sure you want to exit the app?"):
+            self.quit()
 
 
 app = App()

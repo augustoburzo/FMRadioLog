@@ -20,7 +20,7 @@ import base64
 
 
 class QTHFileHandler:
-    def __init__(self, qth=None, switch=0, **kwargs):
+    def __init__(self, qth=None, switch=None, **kwargs):
         if qth is None:
             qth = [0, 0, 0]
         self.qth = str(qth).encode("ascii")
@@ -40,5 +40,3 @@ class QTHFileHandler:
     def write_qth_file(self):
         with open("main.qth", "wb") as qth_file:
             qth_file.write(self.base64qth)
-
-
