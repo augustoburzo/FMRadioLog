@@ -22,7 +22,7 @@ import base64
 class QTHFileHandler:
     def __init__(self, qth=None, switch=None, **kwargs):
         if qth is None:
-            qth = [0, 0, 0]
+            qth = [0, 0, 0, 0]
         self.qth = str(qth).encode("ascii")
         self.base64qth = base64.b64encode(self.qth)
         if switch == 0:
