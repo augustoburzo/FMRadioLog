@@ -1,4 +1,4 @@
-#qth_editor.py
+#constants.py
 # ####################################################################### #
 # This file is part of the FMRadioLog distribution.                       #
 # Copyright (c) 2024 Augusto Burzo.                                       #
@@ -15,32 +15,31 @@
 # You should have received a copy of the GNU General Public License       #
 # along with this program. If not, see <http://www.gnu.org/licenses/>.    #
 # ####################################################################### #
+#Symbolic constants for FMRadioLog
 
-#This file simply handles the read/write functions for the qth file used by the program to populate the QTH section.
+#Location
+LATITUDE = "latitude"
+LONGITUDE = "longitude"
+ALTITUDE = "altitude"
+LOCATION = "location"
 
-import base64
+#Frequency
+FREQUENCY = "frequency"
+RDS = "rds"
+RDS_CHECK = "rds?"
+CARRIER = "carrier"
+PILOT_CHECK = "pilot"
+STRENGTH = "strength"
+AZIMUTH = "azimuth"
+RADIOTEXT_CHECK = "rt?"
+RADIOTEXT = "rt"
+
+#Statuses
+STATUS_READY = "Ready"
+STATUS_LOAD = "Loading..."
+STATUS_READ = "Reading..."
+STATUS_WRITE = "Writing..."
+STATUS_EXPORT = "Exporting file..."
+STATUS_EDIT = "Editing QTH, waiting for Save command"
 
 
-class QTHFileHandler:
-    def __init__(self, qth=None, switch=None, **kwargs):
-        if qth is None:
-            qth = [0, 0, 0, 0]
-        self.qth = str(qth).encode("ascii")
-        self.base64qth = base64.b64encode(self.qth)
-        if switch == 0:
-            self.write_qth_file()
-        elif switch == 1:
-            self.read_qth_file()
-
-    def read_qth_file(self):
-        #Reads the QTH file and returns data to the GUI
-        with open("main.qth", "rb") as qth_file:
-            self.qth = base64.b64decode(qth_file.read())
-        self.qth = self.qth.decode("ascii")
-        self.qth = self.qth.replace("[","").replace("]","").replace('"','')
-        return self.qth
-
-    def write_qth_file(self):
-        #Saves the QTH file
-        with open("main.qth", "wb") as qth_file:
-            qth_file.write(self.base64qth)
